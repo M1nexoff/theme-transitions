@@ -1,0 +1,11 @@
+# JitPack builds on Linux. The Android and desktop variants build as they do anywhere; the iOS klibs
+# through Kotlin's cross-compilation (kotlin.native.enableKlibsCrossCompilation in gradle.properties).
+# AGP 9 needs JDK 17+, and JitPack's default is 8.
+before_install:
+  - sdk install java 21.0.2-open
+  - sdk use java 21.0.2-open
+# JitPack serves a multi-module repository as com.github.<user>.<repo>:<module>:<tag>, and passes
+# those parts in as GROUP, ARTIFACT and VERSION. They replace the Maven Central coordinates in
+# gradle.properties.
+install:
+  - ./gradlew :theme-rift:publishToMavenLocal -PGROUP="$GROUP.$ARTIFACT" -PVERSION_NAME="$VERSION" --console=plain

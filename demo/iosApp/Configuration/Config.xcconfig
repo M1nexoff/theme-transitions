@@ -1,0 +1,9 @@
+// Your Apple team id, for signing on a device. Left blank, the demo still runs on the simulator.
+TEAM_ID=
+
+PRODUCT_NAME=ThemeRiftDemo
+// $(TEAM_ID) keeps the bundle id unique across developers on free provisioning.
+PRODUCT_BUNDLE_IDENTIFIER=io.github.m1nexoff.themerift.demo$(TEAM_ID)
+
+CURRENT_PROJECT_VERSION=1
+MARKETING_VERSION=1.0
