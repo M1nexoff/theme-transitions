@@ -87,8 +87,8 @@ private const val PARTICLE_TRAIL = 3
 // Below this a spark adds nothing a viewer could see.
 private const val MIN_VISIBLE_ALPHA = 0.004f
 
-// The effect is a port of tbahlai/animations' rift_toggle, whose sizes are raw pixels on a 420dpi
-// phone. ref() gives them the same physical size on any screen.
+// The effect's sizes were tuned as raw pixels on a 420dpi phone. ref() gives them the same physical
+// size on any screen.
 private const val REFERENCE_DENSITY = 2.625f
 private const val SHAKE_PX = 8f
 
@@ -266,8 +266,8 @@ private class Rift(
         painter = null
     }
 
-    // Decelerating: the hole bursts open and then slows. The reference's ease-in left it at 3% of
-    // its size a fifth of a second in, which read as a late response to the tap.
+    // Decelerating: the hole bursts open and then slows. An ease-in leaves it at 3% of its size a
+    // fifth of a second in, which reads as a late response to the tap.
     val progress: Float
         get() {
             if (!opened) return 0f
@@ -299,9 +299,9 @@ private class Rift(
     val reach = hypot(max(origin.x, size.width - origin.x), max(origin.y, size.height - origin.y)) /
         ((1f - WOBBLE_DEPTH) * cos(SEGMENT_ANGLE / 2f) * COVERED_AT)
 
-    // Each vertex keeps the furthest it has reached, so the new theme only ever gains ground. The
-    // reference redrew the wobble from scratch every frame; once the easing slowed the growth, the
-    // wobble outpaced it and pulled parts of the edge back.
+    // Each vertex keeps the furthest it has reached, so the new theme only ever gains ground. Drawn
+    // from scratch every frame, the wobble outpaces the growth once the easing slows it, and pulls
+    // parts of the edge back.
     private val edge = FloatArray(EDGE_SEGMENTS)
     val hole = Path()
 

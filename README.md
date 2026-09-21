@@ -201,11 +201,8 @@ new theme inside the hole, the old one outside, and nothing left once the rift e
 
 ## Credits
 
-The effect is a port of *Rift Toggle* from
-[tbahlai/animations](https://github.com/tbahlai/animations), a collection of Jetpack Compose
-experiments. That version composes both themes side by side on Android only. This one is
-multiplatform, composes the UI once, handles overlapping switches, and was reworked for speed on
-low-end phones.
+Inspired by *Rift Toggle* from [tbahlai/animations](https://github.com/tbahlai/animations), a
+collection of Jetpack Compose experiments.
 
 ## License
 
