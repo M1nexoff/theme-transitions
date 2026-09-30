@@ -21,6 +21,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
@@ -36,6 +37,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -52,18 +54,25 @@ private const val RAPID_SWITCHES = 3
 private const val RAPID_SWITCH_GAP_MILLIS = 300L
 
 /**
- * The whole demo: a settings-style screen whose theme switches through [AnimatedTheme]. [onThemeShown]
- * fires once the new theme is on screen, for platform chrome such as the status bar icons.
+ * The whole demo: a screen whose theme switches through [AnimatedTheme], with a playground to pick the
+ * transition. [onThemeShown] fires once the new theme is on screen, for platform chrome such as the
+ * status bar icons. [bench] names a [BenchCase] to run instead of waiting for taps.
  */
 @Composable
-fun DemoApp(onThemeShown: (DemoTheme) -> Unit = {}) {
+fun DemoApp(bench: String? = null, onThemeShown: (DemoTheme) -> Unit = {}) {
     var theme by rememberSaveable { mutableStateOf(DemoTheme.Light) }
+    var playground by rememberSaveable(stateSaver = PlaygroundSaver) { mutableStateOf(Playground()) }
+    val benchCase = remember(bench) { BenchCase.of(bench) }
     val scope = rememberCoroutineScope()
+
+    if (benchCase != null) {
+        LaunchedEffect(benchCase) { runBench(benchCase) { theme = theme.next() } }
+    }
 
     AnimatedTheme(
         targetState = theme,
         modifier = Modifier.fillMaxSize(),
-        transition = theme.rift(),
+        transition = benchCase?.transition(theme) ?: playground.transition(theme),
     ) { shown ->
         LaunchedEffect(shown) { onThemeShown(shown) }
         MaterialTheme(colorScheme = shown.colorScheme) {
@@ -71,6 +80,8 @@ fun DemoApp(onThemeShown: (DemoTheme) -> Unit = {}) {
                 DemoScreen(
                     selected = shown,
                     onSelect = { theme = it },
+                    playground = playground,
+                    onPlaygroundChange = { playground = it },
                     onRapidFire = {
                         scope.launch {
                             repeat(RAPID_SWITCHES) {
@@ -85,10 +96,25 @@ fun DemoApp(onThemeShown: (DemoTheme) -> Unit = {}) {
     }
 }
 
+private val PlaygroundSaver = Saver<Playground, List<Any>>(
+    save = { listOf(it.reveal.ordinal, it.effects, it.durationMillis, it.angleDegrees, it.tileSizeDp) },
+    restore = {
+        Playground(
+            reveal = Reveal.entries[it[0] as Int],
+            effects = it[1] as Int,
+            durationMillis = it[2] as Int,
+            angleDegrees = it[3] as Float,
+            tileSizeDp = it[4] as Float,
+        )
+    },
+)
+
 @Composable
 private fun DemoScreen(
     selected: DemoTheme,
     onSelect: (DemoTheme) -> Unit,
+    playground: Playground,
+    onPlaygroundChange: (Playground) -> Unit,
     onRapidFire: () -> Unit,
 ) {
     Column(
@@ -102,22 +128,23 @@ private fun DemoScreen(
         Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Text("Theme Transitions", style = MaterialTheme.typography.headlineLarge, fontWeight = FontWeight.Bold)
             Text(
-                "Pick a theme. The screen tears open from where you tapped.",
+                "Pick a theme. The transition starts where you tap.",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
         ThemePicker(selected, onSelect)
-        NowPlayingCard()
-        StatsRow()
-        SettingsCard()
+        PlaygroundCard(playground, onPlaygroundChange)
         OutlinedButton(onClick = onRapidFire, modifier = Modifier.fillMaxWidth()) {
             Text("Switch three times, fast")
         }
+        ProfileCard()
+        StatsRow()
+        SettingsCard()
     }
 }
 
-// Each option is drawn in its own theme, so the picker previews what a tap will tear open.
+// Each option is drawn in its own theme, so the picker previews what a tap will switch to.
 @Composable
 private fun ThemePicker(selected: DemoTheme, onSelect: (DemoTheme) -> Unit) {
     Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -144,11 +171,7 @@ private fun ThemePicker(selected: DemoTheme, onSelect: (DemoTheme) -> Unit) {
                     Swatch(theme.colorScheme.surface)
                     Swatch(theme.colorScheme.onBackground)
                 }
-                Text(
-                    theme.label,
-                    color = theme.colorScheme.onBackground,
-                    style = MaterialTheme.typography.labelLarge,
-                )
+                Text(theme.label, color = theme.colorScheme.onBackground, style = MaterialTheme.typography.labelLarge)
             }
         }
     }
@@ -166,31 +189,38 @@ private fun Swatch(color: Color) {
 }
 
 @Composable
-private fun NowPlayingCard() {
+private fun ProfileCard() {
     Card(
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
         shape = RoundedCornerShape(20.dp),
     ) {
-        Column(Modifier.fillMaxWidth().padding(20.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text(
-                "NOW PLAYING",
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onPrimaryContainer,
-            )
-            Text(
-                "Spring campaign",
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.SemiBold,
-                color = MaterialTheme.colorScheme.onPrimaryContainer,
-            )
-            Text(
-                "Lobby screens · 14 of 38 slides",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onPrimaryContainer,
-            )
-            Spacer(Modifier.height(4.dp))
+        Column(Modifier.fillMaxWidth().padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Box(
+                    Modifier.size(48.dp).clip(CircleShape).background(MaterialTheme.colorScheme.primary),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Text("AM", color = MaterialTheme.colorScheme.onPrimary, fontWeight = FontWeight.Bold)
+                }
+                Spacer(Modifier.width(14.dp))
+                Column(Modifier.weight(1f)) {
+                    Text(
+                        "Alex Morgan",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                    )
+                    Text(
+                        "Weekly goal · 5 of 7 days",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                    )
+                }
+                Button(onClick = {}) { Text("Edit") }
+            }
+            Spacer(Modifier.height(2.dp))
             LinearProgressIndicator(
-                progress = { 0.37f },
+                progress = { 5f / 7f },
                 modifier = Modifier.fillMaxWidth(),
                 color = MaterialTheme.colorScheme.primary,
                 trackColor = MaterialTheme.colorScheme.surface,
@@ -202,9 +232,9 @@ private fun NowPlayingCard() {
 @Composable
 private fun StatsRow() {
     Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-        StatTile("128", "Screens", Modifier.weight(1f))
-        StatTile("97%", "Online", Modifier.weight(1f))
-        StatTile("12", "Playlists", Modifier.weight(1f))
+        StatTile("8,412", "Steps", Modifier.weight(1f))
+        StatTile("7h 20m", "Sleep", Modifier.weight(1f))
+        StatTile("1.6 L", "Water", Modifier.weight(1f))
     }
 }
 
@@ -212,7 +242,7 @@ private fun StatsRow() {
 private fun StatTile(value: String, label: String, modifier: Modifier = Modifier) {
     Card(modifier, shape = RoundedCornerShape(16.dp)) {
         Column(Modifier.fillMaxWidth().padding(16.dp)) {
-            Text(value, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+            Text(value, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
             Text(label, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
@@ -223,11 +253,11 @@ private fun StatTile(value: String, label: String, modifier: Modifier = Modifier
 private fun SettingsCard() {
     Card(shape = RoundedCornerShape(20.dp)) {
         Column(Modifier.padding(vertical = 8.dp)) {
-            SettingRow("Notifications", "Alerts when a screen goes offline", initial = true)
+            SettingRow("Notifications", "Reminders and replies", initial = true)
             HorizontalDivider(Modifier.padding(horizontal = 20.dp), color = MaterialTheme.colorScheme.outlineVariant)
-            SettingRow("Autoplay", "Start the next playlist on its own", initial = false)
+            SettingRow("Sound effects", "Taps and toggles", initial = false)
             HorizontalDivider(Modifier.padding(horizontal = 20.dp), color = MaterialTheme.colorScheme.outlineVariant)
-            SettingRow("Wi-Fi only", "Download media on Wi-Fi only", initial = true)
+            SettingRow("Auto-update", "Install updates on Wi-Fi", initial = true)
         }
     }
 }

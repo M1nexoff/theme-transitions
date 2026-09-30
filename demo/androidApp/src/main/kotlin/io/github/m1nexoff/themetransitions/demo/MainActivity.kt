@@ -13,8 +13,9 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         setContent {
-            // The bar icons follow the demo's theme, not the system's.
-            DemoApp(onThemeShown = { theme ->
+            // The bar icons follow the demo's theme, not the system's. `--es bench <case>` runs a bench
+            // case for scripts/bench.sh instead of waiting for taps.
+            DemoApp(bench = intent.getStringExtra("bench"), onThemeShown = { theme ->
                 val style = if (theme.isDark) {
                     SystemBarStyle.dark(Color.TRANSPARENT)
                 } else {

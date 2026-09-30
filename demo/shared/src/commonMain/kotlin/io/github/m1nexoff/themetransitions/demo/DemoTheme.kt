@@ -4,7 +4,6 @@ import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.ui.graphics.Color
-import io.github.m1nexoff.themetransitions.ThemeTransition
 import io.github.m1nexoff.themetransitions.Transitions
 
 // Three themes rather than a light/dark Boolean, to show that AnimatedTheme takes any state.
@@ -12,7 +11,8 @@ enum class DemoTheme(
     val label: String,
     val isDark: Boolean,
     val colorScheme: ColorScheme,
-    private val lightning: Color,
+    // Rings, sparks and lightning: a colour that stands out against both this theme and the others.
+    val accent: Color,
 ) {
     Light(
         label = "Light",
@@ -30,7 +30,7 @@ enum class DemoTheme(
             onSurfaceVariant = Color(0xFF6F6F7E),
             outlineVariant = Color(0xFFE2E2EA),
         ),
-        lightning = Transitions.RiftLightning,
+        accent = Transitions.RiftLightning,
     ),
     Dark(
         label = "Dark",
@@ -48,7 +48,7 @@ enum class DemoTheme(
             onSurfaceVariant = Color(0xFF9A9AAD),
             outlineVariant = Color(0xFF34344A),
         ),
-        lightning = Transitions.RiftLightning,
+        accent = Transitions.RiftLightning,
     ),
     Dusk(
         label = "Dusk",
@@ -66,16 +66,10 @@ enum class DemoTheme(
             onSurfaceVariant = Color(0xFFCDB8E6),
             outlineVariant = Color(0xFF55397A),
         ),
-        // Red is lost against the violet; the rift picks a colour per theme.
-        lightning = Color(0xFF18FFFF),
+        // Red is lost against the violet.
+        accent = Color(0xFF18FFFF),
     ),
     ;
-
-    fun rift(): ThemeTransition = Transitions.rift(
-        glow = colorScheme.onBackground,
-        backdrop = colorScheme.background,
-        lightning = lightning,
-    )
 
     fun next(): DemoTheme = entries[(ordinal + 1) % entries.size]
 }
