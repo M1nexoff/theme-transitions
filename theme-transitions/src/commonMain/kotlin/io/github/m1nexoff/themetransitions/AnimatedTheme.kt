@@ -76,7 +76,7 @@ private val TOUCH_MEMORY = 5.seconds
 public fun <T> AnimatedTheme(
     targetState: T,
     modifier: Modifier = Modifier,
-    transition: ThemeTransition = Transitions.tear(),
+    transition: ThemeTransition = Transitions.circle(),
     content: @Composable (T) -> Unit,
 ) {
     val target by rememberUpdatedState(targetState)

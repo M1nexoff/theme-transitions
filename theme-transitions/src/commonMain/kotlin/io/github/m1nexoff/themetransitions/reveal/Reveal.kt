@@ -39,7 +39,8 @@ internal abstract class RevealRun {
     // The same, for reveals that open from a point.
     open val radial: RadialEdge? get() = null
 
-    // The old frame can no longer show anywhere. The engine then lets go of it.
+    // Nothing is left to draw over the live theme — no old frame, nothing of the reveal's own. The
+    // engine then lets go of it. Once true it stays true, whatever the easing does after.
     abstract val covered: Boolean
 
     // [linear] is the time through the reveal, 0 to 1; [progress] is the same through its easing,
