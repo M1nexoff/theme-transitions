@@ -1,4 +1,4 @@
-package io.github.m1nexoff.themetransitions
+package io.github.m1nexoff.themetransitions.geometry
 
 import kotlin.math.PI
 import kotlin.math.abs

@@ -44,7 +44,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import io.github.m1nexoff.themetransitions.ThemeRift
+import io.github.m1nexoff.themetransitions.AnimatedTheme
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -52,7 +52,7 @@ private const val RAPID_SWITCHES = 3
 private const val RAPID_SWITCH_GAP_MILLIS = 300L
 
 /**
- * The whole demo: a settings-style screen whose theme switches through [ThemeRift]. [onThemeShown]
+ * The whole demo: a settings-style screen whose theme switches through [AnimatedTheme]. [onThemeShown]
  * fires once the new theme is on screen, for platform chrome such as the status bar icons.
  */
 @Composable
@@ -60,10 +60,10 @@ fun DemoApp(onThemeShown: (DemoTheme) -> Unit = {}) {
     var theme by rememberSaveable { mutableStateOf(DemoTheme.Light) }
     val scope = rememberCoroutineScope()
 
-    ThemeRift(
+    AnimatedTheme(
         targetState = theme,
-        colors = DemoTheme::riftColors,
         modifier = Modifier.fillMaxSize(),
+        transition = theme.rift(),
     ) { shown ->
         LaunchedEffect(shown) { onThemeShown(shown) }
         MaterialTheme(colorScheme = shown.colorScheme) {

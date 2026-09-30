@@ -4,9 +4,10 @@ import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.ui.graphics.Color
-import io.github.m1nexoff.themetransitions.RiftColors
+import io.github.m1nexoff.themetransitions.ThemeTransition
+import io.github.m1nexoff.themetransitions.Transitions
 
-// Three themes rather than a light/dark Boolean, to show that ThemeRift takes any state.
+// Three themes rather than a light/dark Boolean, to show that AnimatedTheme takes any state.
 enum class DemoTheme(
     val label: String,
     val isDark: Boolean,
@@ -29,7 +30,7 @@ enum class DemoTheme(
             onSurfaceVariant = Color(0xFF6F6F7E),
             outlineVariant = Color(0xFFE2E2EA),
         ),
-        lightning = RiftColors.DefaultLightning,
+        lightning = Transitions.RiftLightning,
     ),
     Dark(
         label = "Dark",
@@ -47,7 +48,7 @@ enum class DemoTheme(
             onSurfaceVariant = Color(0xFF9A9AAD),
             outlineVariant = Color(0xFF34344A),
         ),
-        lightning = RiftColors.DefaultLightning,
+        lightning = Transitions.RiftLightning,
     ),
     Dusk(
         label = "Dusk",
@@ -70,9 +71,9 @@ enum class DemoTheme(
     ),
     ;
 
-    fun riftColors(): RiftColors = RiftColors(
-        background = colorScheme.background,
+    fun rift(): ThemeTransition = Transitions.rift(
         glow = colorScheme.onBackground,
+        backdrop = colorScheme.background,
         lightning = lightning,
     )
 
