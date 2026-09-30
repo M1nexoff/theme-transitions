@@ -9,7 +9,7 @@ plugins {
 
 kotlin {
     android {
-        namespace = "io.github.m1nexoff.themerift.demo.shared"
+        namespace = "io.github.m1nexoff.themetransitions.demo.shared"
         compileSdk = libs.versions.android.compileSdk.get().toInt()
         minSdk = libs.versions.android.minSdk.get().toInt()
         compilerOptions {
@@ -25,14 +25,14 @@ kotlin {
 
     listOf(iosArm64(), iosSimulatorArm64()).forEach { target ->
         target.binaries.framework {
-            baseName = "ThemeRiftDemo"
+            baseName = "ThemeTransitionsDemo"
             isStatic = true
         }
     }
 
     sourceSets {
         commonMain.dependencies {
-            implementation(project(":theme-rift"))
+            implementation(project(":theme-transitions"))
             implementation(libs.compose.runtime)
             implementation(libs.compose.ui)
             implementation(libs.compose.foundation)

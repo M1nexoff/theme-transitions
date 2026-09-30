@@ -1,6 +1,6 @@
 import UIKit
 import SwiftUI
-import ThemeRiftDemo
+import ThemeTransitionsDemo
 
 struct ComposeView: UIViewControllerRepresentable {
     func makeUIViewController(context: Self.Context) -> UIViewController {

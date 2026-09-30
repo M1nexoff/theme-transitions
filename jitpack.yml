@@ -8,4 +8,4 @@ before_install:
 # those parts in as GROUP, ARTIFACT and VERSION. They replace the Maven Central coordinates in
 # gradle.properties.
 install:
-  - ./gradlew :theme-rift:publishToMavenLocal -PGROUP="$GROUP.$ARTIFACT" -PVERSION_NAME="$VERSION" --console=plain
+  - ./gradlew :theme-transitions:publishToMavenLocal -PGROUP="$GROUP.$ARTIFACT" -PVERSION_NAME="$VERSION" --console=plain

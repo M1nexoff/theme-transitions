@@ -18,6 +18,6 @@ kotlin {
 
 compose.desktop {
     application {
-        mainClass = "io.github.m1nexoff.themerift.demo.MainKt"
+        mainClass = "io.github.m1nexoff.themetransitions.demo.MainKt"
     }
 }

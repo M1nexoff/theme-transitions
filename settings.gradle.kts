@@ -1,4 +1,4 @@
-rootProject.name = "theme-rift"
+rootProject.name = "theme-transitions"
 
 pluginManagement {
     repositories {
@@ -27,7 +27,7 @@ dependencyResolutionManagement {
     }
 }
 
-include(":theme-rift")
+include(":theme-transitions")
 include(":demo:shared")
 include(":demo:androidApp")
 include(":demo:desktopApp")
