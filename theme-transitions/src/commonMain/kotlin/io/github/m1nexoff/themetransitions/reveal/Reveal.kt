@@ -20,6 +20,10 @@ internal abstract class RevealSpec(
     // Null for reveals that do not open from a point.
     val origin: TransitionOrigin?,
 ) {
+    init {
+        require(durationMillis >= 0) { "durationMillis must not be negative, was $durationMillis" }
+    }
+
     abstract fun start(setup: RunSetup): RevealRun
 }
 

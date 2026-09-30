@@ -80,26 +80,46 @@ internal val RadialEffect.spec: EffectSpec get() = this as EffectSpec
 
 @Immutable
 private class Ring(val color: Color, val width: Dp, val flicker: Boolean) : EdgeEffect, EffectSpec {
+    init {
+        require(width >= 0.dp) { "width must not be negative, was $width" }
+    }
+
     override fun start(setup: RunSetup) = RingRun(color, with(setup.density) { width.toPx() }, flicker)
 }
 
 @Immutable
 private class Sparks(val color: Color, val count: Int) : RadialEffect, EffectSpec {
+    init {
+        require(count >= 0) { "count must not be negative, was $count" }
+    }
+
     override fun start(setup: RunSetup) = SparksRun(color, count, setup.density)
 }
 
 @Immutable
 private class Lightning(val color: Color, val bolts: Int) : RadialEffect, EffectSpec {
+    init {
+        require(bolts >= 0) { "bolts must not be negative, was $bolts" }
+    }
+
     override fun start(setup: RunSetup) = LightningRun(color, bolts, setup.density)
 }
 
 @Immutable
 private class Shake(val strength: Dp, val backdrop: Color) : UniversalEffect, EffectSpec {
+    init {
+        require(strength >= 0.dp) { "strength must not be negative, was $strength" }
+    }
+
     override fun start(setup: RunSetup) = ShakeRun(with(setup.density) { strength.toPx() }, backdrop)
 }
 
 @Immutable
 private class Dim(val color: Color, val maxAlpha: Float) : UniversalEffect, EffectSpec {
+    init {
+        require(maxAlpha in 0f..1f) { "maxAlpha must be within 0..1, was $maxAlpha" }
+    }
+
     override fun start(setup: RunSetup) = DimRun(color, maxAlpha)
 }
 
