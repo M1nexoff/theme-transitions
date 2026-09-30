@@ -80,6 +80,23 @@ class EngineRenderTest {
         assertAll(inside, DARK, "the resized box should show the new theme alone")
     }
 
+    // A frame that comes late — the app recomposing in the new theme, say — must not make the
+    // transition skip ahead: it picks up where it was, a frame or two on.
+    @Test
+    fun aLateFrameDoesNotSkipTheTransitionAhead() = withScene(
+        transition = { Transitions.circle(easing = androidx.compose.animation.core.LinearEasing) },
+    ) { scene ->
+        scene.tap(FIRST)
+        scene.theme = DARK
+        scene.advance(FRAME_MILLIS * 4)
+        scene.stall(400)
+        val pixels = scene.frame()
+
+        // 400 ms into 650 would have opened the circle past 60% of its reach.
+        val reach = kotlin.math.hypot(300f, 700f)
+        assertAll(samples(pixels, where = farFrom(FIRST, reach * 0.3f)), LIGHT, "the old theme beyond the circle")
+    }
+
     private companion object {
         val FIRST = Offset(100f, 700f)
         val SECOND = Offset(300f, 100f)

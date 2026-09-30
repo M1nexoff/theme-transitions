@@ -77,6 +77,13 @@ internal class RenderTestScene(
         }
     }
 
+    // One frame that arrives [millis] late, as after a long recomposition.
+    fun stall(millis: Long) {
+        Snapshot.sendApplyNotifications()
+        clock += millis
+        scene.render(clock * 1_000_000)
+    }
+
     fun frame(): PixelMap {
         Snapshot.sendApplyNotifications()
         clock += FRAME_MILLIS

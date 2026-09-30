@@ -13,6 +13,11 @@ import kotlinx.coroutines.flow.first
 // Retired runs only fade their effects out, but a burst of switches should not pile them up.
 private const val MAX_RETIRING = 2
 
+// The most one frame may move a transition on. A frame that comes later than this — typically the app
+// recomposing in the new theme just as the transition starts — pauses it rather than making it skip
+// ahead, so its first visible frame is not already a tenth of the way through.
+private const val MAX_FRAME_MILLIS = 34f
+
 // The transitions on screen: the current one, and those a newer switch replaced, fading out.
 internal class TransitionEngine {
 
@@ -71,7 +76,8 @@ internal class TransitionEngine {
     }
 
     private fun tick(frameNanos: Long, scale: Float) {
-        val delta = if (lastFrameNanos < 0L) 0f else (frameNanos - lastFrameNanos) / 1_000_000f / scale
+        val elapsed = if (lastFrameNanos < 0L) 0f else (frameNanos - lastFrameNanos) / 1_000_000f / scale
+        val delta = elapsed.coerceAtMost(MAX_FRAME_MILLIS)
         lastFrameNanos = frameNanos
 
         val run = current
