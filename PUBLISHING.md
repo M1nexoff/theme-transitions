@@ -6,27 +6,27 @@ variant builds from any OS, iOS included: Kotlin cross-compiles the iOS klibs, a
 app needs a Mac.
 
 Before the first release, check the `POM_*` URLs in `gradle.properties`. They assume a GitHub
-repository at `github.com/M1nexoff/theme-rift`.
+repository at `github.com/M1nexoff/theme-transitions`.
 
 ## JitPack
 
 JitPack builds straight from a git tag, so there is nothing to upload and no keys to manage.
 
-1. Push this repository to GitHub, public, as `M1nexoff/theme-rift`.
+1. Push this repository to GitHub, public, as `M1nexoff/theme-transitions`.
 2. Tag a release and push the tag:
    ```sh
    git tag 0.1.0
    git push origin 0.1.0
    ```
-3. Open <https://jitpack.io/#M1nexoff/theme-rift>, find the tag and press **Get it**. The first
+3. Open <https://jitpack.io/#M1nexoff/theme-transitions>, find the tag and press **Get it**. The first
    request starts the build, and its log is linked from that page.
 
-JitPack runs `jitpack.yml`: JDK 21 through SDKMAN, then `:theme-rift:publishToMavenLocal`, with
+JitPack runs `jitpack.yml`: JDK 21 through SDKMAN, then `:theme-transitions:publishToMavenLocal`, with
 JitPack's `GROUP`, `ARTIFACT` and `VERSION` variables passed in as the coordinates. The artifacts
 come out as:
 
 ```kotlin
-implementation("com.github.M1nexoff.theme-rift:theme-rift:0.1.0")
+implementation("com.github.M1nexoff.theme-transitions:theme-transitions:0.1.0")
 ```
 
 If the build fails at `sdk install java`, SDKMAN may have retired that identifier. Pick a current
@@ -64,14 +64,14 @@ If the build fails at `sdk install java`, SDKMAN may have retired that identifie
 ### Each release
 
 1. Set `VERSION_NAME` in `gradle.properties` and add an entry to `CHANGELOG.md`.
-2. Run the tests: `./gradlew :theme-rift:desktopTest`.
+2. Run the tests: `./gradlew :theme-transitions:desktopTest`.
 3. Upload:
    ```sh
-   ./gradlew :theme-rift:publishToMavenCentral
+   ./gradlew :theme-transitions:publishToMavenCentral
    ```
    This uploads and validates the deployment and stops there. Review it under *Deployments* in the
    portal and press **Publish**. Once you trust the process,
-   `./gradlew :theme-rift:publishAndReleaseToMavenCentral` does both in one step.
+   `./gradlew :theme-transitions:publishAndReleaseToMavenCentral` does both in one step.
 4. Tag the commit (`git tag <version> && git push origin <version>`) so JitPack and Maven Central
    carry the same versions.
 
