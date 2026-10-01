@@ -31,16 +31,20 @@ internal class TileGrid(width: Int, height: Int, tilePx: Int, maxTiles: Int, ran
         val columns = columns(width, size)
         count = columns * rows(height, size)
 
-        val moments = FloatArray(count) { random.nextFloat() }
-        val order = (0 until count).sortedBy { moments[it] }
+        // Sorted as packed longs, moment over index: a moment in [0, 1) is a non-negative float, whose bits
+        // order as an Int the way the floats do. This runs on the frame of the switch, and sorting boxed
+        // indices instead took some 60% longer.
+        val order = LongArray(count) { tile -> (random.nextFloat().toRawBits().toLong() shl 32) or tile.toLong() }
+        order.sort()
         thresholds = FloatArray(count)
         left = IntArray(count)
         top = IntArray(count)
         right = IntArray(count)
         bottom = IntArray(count)
         triangles = FloatArray(count * 12)
-        order.forEachIndexed { i, tile ->
-            thresholds[i] = moments[tile]
+        for (i in 0 until count) {
+            val tile = order[i].toInt()
+            thresholds[i] = Float.fromBits((order[i] ushr 32).toInt())
             val l = (tile % columns) * size
             val t = (tile / columns) * size
             val r = minOf(l + size, width)
