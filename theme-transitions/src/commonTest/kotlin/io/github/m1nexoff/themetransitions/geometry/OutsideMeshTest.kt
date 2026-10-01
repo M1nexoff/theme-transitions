@@ -53,6 +53,18 @@ class OutsideMeshTest {
         }
     }
 
+    // TransitionOrigin.Fraction may put the origin off screen, which sends some rays away from it.
+    @Test
+    fun originsOutsideTheScreenKeepExactCoverage() {
+        val random = Random(7)
+        repeat(60) {
+            val originX = (random.nextFloat() * 2f - 0.5f) * width
+            val originY = (random.nextFloat() * 2f - 0.5f) * height
+            assertCoverage(originX, originY, distances = wobbly(radius = random.nextFloat() * 4_000f, seed = random.nextInt()))
+        }
+        assertCoverage(originX = 1.2f * width, originY = -0.1f * height, distances = wobbly(radius = 900f, seed = 9))
+    }
+
     // The same ragged edge the rift grows: a circle pushed in and out by a few percent.
     private fun wobbly(radius: Float, seed: Int): FloatArray {
         val random = Random(seed)

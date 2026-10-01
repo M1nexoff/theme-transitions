@@ -56,6 +56,28 @@ class EngineRenderTest {
         assertAll(samples(scene.frame()) { _, _ -> true }, DUSK, "the last theme, and nothing else")
     }
 
+    // Three in a row: each freeze bakes in the one before, which itself baked in the first.
+    @Test
+    fun threeRapidSwitchesKeepEveryHoleAndEndOnTheLastTheme() = withScene(transition = tear) { scene ->
+        scene.tap(FIRST)
+        scene.theme = DARK
+        scene.advance(120)
+        scene.tap(SECOND)
+        scene.theme = DUSK
+        scene.advance(120)
+        scene.tap(THIRD)
+        scene.theme = LIGHT
+        scene.advance(120)
+        val pixels = scene.frame()
+
+        assertAll(samples(pixels, where = near(THIRD, 60f)), LIGHT, "inside the third hole")
+        assertAll(samples(pixels, where = near(SECOND, 60f)), DUSK, "inside the second hole, outside the third")
+        assertAll(samples(pixels, where = near(FIRST, 60f)), DARK, "inside the first hole, outside the others")
+
+        scene.advance(2_600)
+        assertAll(samples(scene.frame()) { _, _ -> true }, LIGHT, "the last theme, and nothing else")
+    }
+
     @Test
     fun switchingBackAtOnceEndsOnTheFirstTheme() = withScene(transition = tear) { scene ->
         scene.tap(FIRST)
@@ -100,5 +122,6 @@ class EngineRenderTest {
     private companion object {
         val FIRST = Offset(100f, 700f)
         val SECOND = Offset(300f, 100f)
+        val THIRD = Offset(380f, 380f)
     }
 }
