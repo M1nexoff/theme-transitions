@@ -27,8 +27,9 @@ public sealed interface TransitionOrigin {
      * there.
      */
     public class Fraction(public val x: Float, public val y: Float) : TransitionOrigin {
+        // By bits, like hashCode: Float's == says 0f and -0f are equal but NaN is not itself.
         override fun equals(other: Any?): Boolean =
-            this === other || (other is Fraction && x == other.x && y == other.y)
+            this === other || (other is Fraction && x.toBits() == other.x.toBits() && y.toBits() == other.y.toBits())
 
         override fun hashCode(): Int = 31 * x.hashCode() + y.hashCode()
 
