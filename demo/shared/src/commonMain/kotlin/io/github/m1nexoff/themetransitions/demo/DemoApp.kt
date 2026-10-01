@@ -47,6 +47,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import io.github.m1nexoff.themetransitions.AnimatedTheme
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -64,6 +65,7 @@ fun DemoApp(bench: String? = null, onThemeShown: (DemoTheme) -> Unit = {}) {
     var playground by rememberSaveable(stateSaver = PlaygroundSaver) { mutableStateOf(Playground()) }
     val benchCase = remember(bench) { BenchCase.of(bench) }
     val scope = rememberCoroutineScope()
+    var showcase by remember { mutableStateOf<Job?>(null) }
 
     if (benchCase != null) {
         LaunchedEffect(benchCase) { runBench(benchCase, bench!!) { theme = theme.next() } }
@@ -91,6 +93,44 @@ fun DemoApp(bench: String? = null, onThemeShown: (DemoTheme) -> Unit = {}) {
                             }
                         }
                     },
+                    playingAll = showcase != null,
+                    onPlayAll = {
+                        val running = showcase
+                        if (running != null) {
+                            running.cancel()
+                        } else {
+                            val before = playground
+                            showcase = scope.launch {
+                                playShowcase(
+                                    show = { playground = it?.playground ?: before },
+                                    switch = { theme = theme.next() },
+                                )
+                            }.also { job -> job.invokeOnCompletion { showcase = null } }
+                        }
+                    },
+                )
+            }
+        }
+    }
+}
+
+/**
+ * The demo screen in [theme], switching through what [playground] is set to, with its controls left
+ * unwired: for stills and recordings.
+ */
+@Composable
+fun PreviewDemo(theme: DemoTheme, playground: Playground) {
+    AnimatedTheme(targetState = theme, modifier = Modifier.fillMaxSize(), transition = playground.transition(theme)) { shown ->
+        MaterialTheme(colorScheme = shown.colorScheme) {
+            Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
+                DemoScreen(
+                    selected = shown,
+                    onSelect = {},
+                    playground = playground,
+                    onPlaygroundChange = {},
+                    onRapidFire = {},
+                    playingAll = false,
+                    onPlayAll = {},
                 )
             }
         }
@@ -117,6 +157,8 @@ private fun DemoScreen(
     playground: Playground,
     onPlaygroundChange: (Playground) -> Unit,
     onRapidFire: () -> Unit,
+    playingAll: Boolean,
+    onPlayAll: () -> Unit,
 ) {
     Column(
         Modifier
@@ -136,8 +178,14 @@ private fun DemoScreen(
         }
         ThemePicker(selected, onSelect)
         PlaygroundCard(playground, onPlaygroundChange)
-        OutlinedButton(onClick = onRapidFire, modifier = Modifier.fillMaxWidth()) {
-            Text("Switch three times, fast")
+        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            OutlinedButton(onClick = onRapidFire, modifier = Modifier.weight(1f)) {
+                Text("Three times, fast")
+            }
+            // Every transition and its variants through all three themes, the playground following along.
+            Button(onClick = onPlayAll, modifier = Modifier.weight(1f)) {
+                Text(if (playingAll) "Stop" else "Play all")
+            }
         }
         ProfileCard()
         StatsRow()
