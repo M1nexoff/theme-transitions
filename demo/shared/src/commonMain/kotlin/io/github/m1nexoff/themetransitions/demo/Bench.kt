@@ -8,7 +8,9 @@ import kotlinx.coroutines.delay
 
 private const val SWITCHES = 10
 private const val SETTLE_MILLIS = 1_500L
-private const val GAP_MILLIS = 500L
+// Long enough that scripts/bench.sh, which splits transitions on pauses of 0.6 s, never takes a slow
+// switch for the pause between two.
+private const val GAP_MILLIS = 1_000L
 
 // A switch from code has no touch behind it; this stands in for a tap on the theme picker.
 private val BenchOrigin = TransitionOrigin.Fraction(0.5f, 0.25f)

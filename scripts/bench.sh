@@ -40,14 +40,15 @@ device() { adb -s "$serial" "$@"; }
 # SurfaceFlinger keeps only the last 128 frames, about two seconds, so the bench polls well within that.
 collect() { device shell dumpsys SurfaceFlinger --latency "'$layer'" | tr -d '\r' >>"$presents"; }
 
-# Splits the present times collected over a case into transitions — a pause of a fifth of a second or
-# more is the idle time between switches — and counts the vsyncs each skipped.
+# Splits the present times collected over a case into transitions — a pause of 0.6 s or more is the
+# idle second the demo leaves between them — and counts the vsyncs each skipped. A switch that stalled
+# longer than that would be taken for a pause; the bound sits as near the idle time as it safely can.
 smoothness() {
   awk 'NF == 3 && $2 > 0 && $2 < 9000000000000000000 { print $2 }' "$presents" | sort -n -u |
     awk -v period="$1" '
       NR > 1 {
         gap = $1 - last
-        if (gap < 200000000) {
+        if (gap < 600000000) {
           shown++
           missed = int(gap / period + 0.5) - 1
           if (++interval <= 4) atswitch += missed; else { during += missed; animated++ }
