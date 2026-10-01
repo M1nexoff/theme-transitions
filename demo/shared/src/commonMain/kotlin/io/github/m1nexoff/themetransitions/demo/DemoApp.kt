@@ -66,7 +66,7 @@ fun DemoApp(bench: String? = null, onThemeShown: (DemoTheme) -> Unit = {}) {
     val scope = rememberCoroutineScope()
 
     if (benchCase != null) {
-        LaunchedEffect(benchCase) { runBench(benchCase) { theme = theme.next() } }
+        LaunchedEffect(benchCase) { runBench(benchCase, bench!!) { theme = theme.next() } }
     }
 
     AnimatedTheme(
@@ -77,6 +77,7 @@ fun DemoApp(bench: String? = null, onThemeShown: (DemoTheme) -> Unit = {}) {
         LaunchedEffect(shown) { onThemeShown(shown) }
         MaterialTheme(colorScheme = shown.colorScheme) {
             Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
+                if (BenchCase.isPlain(bench)) return@Surface
                 DemoScreen(
                     selected = shown,
                     onSelect = { theme = it },
