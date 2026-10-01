@@ -23,3 +23,7 @@ replay_pid*.log
 
 # Rendered by ./gradlew renderShowreel; shared, not versioned.
 docs/showreel/*.mp4
+
+# Local only: the bench script and design notes.
+/scripts/
+/docs/superpowers/

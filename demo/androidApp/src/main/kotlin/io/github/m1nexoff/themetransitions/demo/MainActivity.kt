@@ -14,7 +14,7 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             // The bar icons follow the demo's theme, not the system's. `--es bench <case>` runs a bench
-            // case for scripts/bench.sh instead of waiting for taps.
+            // case, for measuring frame times, instead of waiting for taps.
             DemoApp(bench = intent.getStringExtra("bench"), onThemeShown = { theme ->
                 val style = if (theme.isDark) {
                     SystemBarStyle.dark(Color.TRANSPARENT)

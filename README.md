@@ -177,9 +177,8 @@ The same goes for a different transition per theme: `transition = if (theme.isDa
 
 ## Performance
 
-Measured on two phones with the demo's release build and `scripts/bench.sh`, which reads from
-SurfaceFlinger when each frame actually reached the screen. Ten switches per transition, over the
-demo's Material 3 screen:
+Measured on two phones with the demo's release build, reading from SurfaceFlinger when each frame
+actually reached the screen. Ten switches per transition, over the demo's Material 3 screen:
 
 - **Redmi Note 9**: MediaTek Helio G85, Mali-G52 MC2, Android 12, 1080 × 2340, 60 Hz. A budget phone.
 - **Redmi Note 13 Pro**: MediaTek Helio G99-Ultra, Mali-G57 MC2, Android 16, 1080 × 2400, at 60 Hz and at
@@ -277,7 +276,6 @@ The Android SDK location goes in `local.properties` (`sdk.dir=...`), as in any A
 ./gradlew :theme-transitions:publishToMavenLocal          # every variant, iOS included, from any OS
 ./gradlew renderPreviews                                  # docs/preview.png: five moments of each transition
 ./gradlew renderShowreel -Pffmpeg=<path to ffmpeg>        # docs/showreel: an MP4 and the GIFs above
-scripts/bench.sh <adb serial> [case...]                   # frame counts on a phone, release build installed
 ```
 
 ## Credits
