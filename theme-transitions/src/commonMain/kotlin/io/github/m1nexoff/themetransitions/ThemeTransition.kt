@@ -84,8 +84,9 @@ public object Transitions {
     ): ThemeTransition = ThemeTransition(FadeSpec(durationMillis, easing), effects)
 
     /**
-     * The old theme breaks into square tiles of [tileSize] that vanish in random order. Before Android
-     * 10 the tiles are drawn one by one, so there they grow as needed to stay few.
+     * The old theme breaks into square tiles of [tileSize] that vanish in random order. Android 10 and
+     * later draw them all in one call; elsewhere — earlier Android, iOS, desktop — they are drawn one by
+     * one, so there they grow as needed to stay few.
      */
     public fun dissolve(
         tileSize: Dp = 12.dp,

@@ -42,7 +42,8 @@ kotlin {
         commonMain.dependencies {
             api(libs.compose.runtime)
             api(libs.compose.ui)
-            implementation(libs.compose.animationCore)
+            // Easing is in the public API.
+            api(libs.compose.animationCore)
             implementation(libs.compose.foundationLayout)
         }
         commonTest.dependencies {
