@@ -129,6 +129,7 @@ public fun <T> AnimatedTheme(
                 }
             }
             .drawWithContent {
+                engine.observeClocks()
                 val current = engine.current
                 val retiring = engine.retiring
                 if (current != null || retiring.isNotEmpty()) {
@@ -138,6 +139,7 @@ public fun <T> AnimatedTheme(
                 drawContent()
             }
             .graphicsLayer {
+                engine.observeClocks()
                 val current = engine.current
                 val retiring = engine.retiring
                 val shake = if (current == null && retiring.isEmpty()) Offset.Zero else shakeOffset(current, retiring)
@@ -145,11 +147,9 @@ public fun <T> AnimatedTheme(
                 translationY = shake.y
             }
             .drawWithContent {
+                engine.observeClocks()
                 val current = engine.current
                 val retiring = engine.retiring
-                // Read here so every tick redraws, whatever the reveal and effects read themselves.
-                current?.clockMillis
-                for (i in retiring.indices) retiring[i].clockMillis
                 live.record { this@drawWithContent.drawContent() }
                 themes.record { drawThemes(live, current, retiring) }
                 drawLayer(themes)

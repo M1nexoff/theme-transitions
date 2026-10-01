@@ -30,6 +30,15 @@ internal class TransitionEngine {
 
     val active: Boolean get() = current != null || retiring.isNotEmpty()
 
+    // Reads every run's clock, so the draw or layer block that calls it is redone on every tick. What
+    // the block reads on its own is not enough: before the freeze, progress is 0 without a look at the
+    // clock, and the freeze itself is not snapshot state, so a block that ran then would never run again.
+    fun observeClocks() {
+        current?.clockMillis
+        val old = retiring
+        for (i in old.indices) old[i].clockMillis
+    }
+
     private var lastFrameNanos = -1L
 
     // The run already on screen retires: its reveal stops where it is, and its effects fade out. Its
