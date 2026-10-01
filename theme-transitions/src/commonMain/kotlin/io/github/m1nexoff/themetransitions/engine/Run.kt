@@ -35,7 +35,10 @@ internal class Run(transition: ThemeTransition, val setup: RunSetup) {
 
     private var revealStart = Float.NaN
     private var retiredAt = Float.NaN
-    private var released = false
+
+    // The old frame is let go: covered, baked into a newer run's frame, or dropped.
+    var released = false
+        private set
 
     // The old theme is captured and the reveal is moving. Until then the old theme is still live.
     val frozen: Boolean get() = !revealStart.isNaN()
@@ -70,7 +73,8 @@ internal class Run(transition: ThemeTransition, val setup: RunSetup) {
         clockMillis += deltaMillis
         // A retired reveal stays where it was: the newer run's frozen frame already holds it.
         if (!retiring) reveal.update(linear, progress, time)
-        if (hasOld && reveal.covered) release()
+        // Covered, the old frame shows nowhere any more; the effects may run on for a while yet.
+        if (frozen && !released && reveal.covered) release()
     }
 
     fun freeze(image: ImageBitmap) {
