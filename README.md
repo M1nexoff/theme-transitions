@@ -5,9 +5,9 @@ transition, and the screen changes theme through a circle that grows from the us
 of colour, a wipe, a fade, a dissolve or a rift that tears the screen open. Layer rings, sparks,
 lightning, a shake, a dim or a glow on top.
 
-| Circle | Circle + ring | Circle + sparks, lightning |
+| Circle | Circle + ring | Circle + ring, sparks, lightning, dim |
 |:---:|:---:|:---:|
-| ![Circle](docs/showreel/circle.gif) | ![Circle with a ring](docs/showreel/circle-ring.gif) | ![Circle with sparks, lightning and dim](docs/showreel/circle-sparks-lightning-dim.gif) |
+| ![Circle](docs/showreel/circle.gif) | ![Circle with a ring](docs/showreel/circle-ring.gif) | ![Circle with a ring, sparks, lightning and dim](docs/showreel/circle-ring-sparks-lightning-dim.gif) |
 | **Flood** | **Wipe 45° + ring** | **Fade** |
 | ![Flood](docs/showreel/flood.gif) | ![Diagonal wipe with a ring](docs/showreel/wipe-45-ring.gif) | ![Fade](docs/showreel/fade.gif) |
 | **Dissolve** | **Tear + ring, shake** | **Rift** |
@@ -18,7 +18,8 @@ lightning, a shake, a dim or a glow on top.
   Combinations that cannot work do not compile.
 - **Any theme state.** A `Boolean`, an enum, a palette object: anything you can compare with `equals`.
 - **Android, iOS and desktop** from one `commonMain` dependency.
-- **Measured on a budget phone.** Every transition animates at 60 fps on a Redmi Note 9 (see
+- **Measured on a budget phone.** On a Redmi Note 9 every transition animates at 60 fps once it has
+  started; the switch itself costs a few frames, most of them your app's own recomposition (see
   [Performance](#performance)).
 
 ## Install
@@ -167,7 +168,7 @@ The same goes for a different transition per theme: `transition = if (theme.isDa
   animations are turned off in the system settings, the theme changes at once. So it does with
   `none()`, a duration of 0, or when the box is resized mid-transition.
 - **Late frames pause, they don't skip.** A frame that comes late, typically the one your app
-  recomposes in the new theme on, moves the transition on by at most two frames' worth.
+  recomposes in the new theme on, moves the transition on by at most 34 ms, two frames at 60 Hz.
 - **Wrong arguments fail early.** A negative duration, count, width or strength, a tile size of 0 or
   a dim outside `0..1` throws when the transition is built.
 
@@ -179,30 +180,32 @@ new frame on. Ten switches per transition over the demo's Material 3 screen:
 
 | Transition | Smooth during the animation | Vsyncs missed at the switch, per switch |
 |---|---:|---:|
-| circle | 98.2% | 5.4 |
-| circle + ring, sparks, lightning, dim | 100% | 7.1 |
-| flood | 99.8% | 6.1 |
-| wipe | 99.7% | 5.3 |
-| wipe 45° | 100% | 6.5 |
-| fade | 99.5% | 4.7 |
-| dissolve | 100% | 5.0 |
-| tear | 99.9% | 5.6 |
-| rift | 99.9% | 7.4 |
-| *redraw: the screen alone, no transition drawn* | *100%* | *5.4* |
-| *redraw over a flat background* | *99.7%* | *0.1* |
+| circle | 97.6% | 6.9 |
+| circle + ring, sparks, lightning, dim | 99.7% | 7.8 |
+| flood | 99.4% | 6.7 |
+| wipe | 99.0% | 4.0 |
+| wipe 45° | 99.7% | 7.1 |
+| fade | 99.1% | 6.3 |
+| dissolve | 99.7% | 6.3 |
+| tear | 99.7% | 6.0 |
+| rift | 99.7% | 7.5 |
+| *redraw: freeze and recompose, then repaint the screen with no transition drawn* | *100%* | *3.1* |
+| *redraw over a flat background* | *99.2%* | *0.1* |
 
 **Once it starts, every transition runs at 60 fps**: what it misses during the animation is a single
-frame now and then, and a few in the first, still cold transition of a run. The frames missed at the
-switch are as many with no transition drawn at all (`redraw`) and none over a flat background, so they
-come from the screen, not the transition:
+frame now and then, and a few in the first, still cold transition of a run. The switch itself costs
+more, in three parts:
 
 - **Freezing the old theme** draws your whole screen once more into a bitmap: 15–30 ms on this phone,
   depending on the screen.
 - **Your app recomposing in the new theme.** `MaterialTheme` hands out its colours through a static
   composition local, so everything below it recomposes on the frame the theme changes, transition or
-  not: 60–120 ms for the demo's screen on this phone.
+  not: 60–120 ms for the demo's screen on this phone, while it is still being compiled, less after.
+- **The transition's first frames**, which put the frozen frame on the GPU and wake it from idle: the
+  difference between the `redraw` row and the others, one to four frames.
 
-If a switch hitches on a slow phone, the second is the one to cut: provide your colours through a
+Over a flat background none of it shows, so it is the screen that sets the price. If a switch hitches
+on a slow phone, the recomposition is the one to cut: provide your colours through a
 `compositionLocalOf` (dynamic), so only what reads a colour recomposes, and ship a baseline profile.
 
 ## How it works
@@ -225,7 +228,7 @@ G99, that alone took 25–30 ms. None of the reveals does it:
 | tear | Android 10+: a textured mesh covering exactly the outside of the hole, with a hair-thin line of the old frame itself along the edge to hide the mesh's jagged rim. Before Android 10, and on iOS and desktop, a clip. |
 
 Edges are drawn as raw line segments rather than stroked paths, which cost 12 ms of GPU on the G99,
-and nothing is allocated per frame.
+and the paths, paints, strokes and buffers a transition draws with are made once, not every frame.
 
 `theme-transitions/src/desktopTest` renders every reveal off screen through Skia and checks the
 pixels: the new theme where it has opened, the old one where it has not, and nothing left once a
@@ -260,7 +263,7 @@ The Android SDK location goes in `local.properties` (`sdk.dir=...`), as in any A
 ```sh
 ./gradlew :theme-transitions:desktopTest                  # geometry and rendering tests
 ./gradlew :theme-transitions:publishToMavenLocal          # every variant, iOS included, from any OS
-./gradlew renderPreviews                                  # docs/preview.png
+./gradlew renderPreviews                                  # docs/preview.png: five moments of each transition
 ./gradlew renderShowreel -Pffmpeg=<path to ffmpeg>        # docs/showreel: an MP4 and the GIFs above
 scripts/bench.sh <adb serial> [case...]                   # frame counts on a phone, release build installed
 ```

@@ -34,7 +34,7 @@ private const val GIF_WIDTH = 300
 
 // The showcase items that also get a looping GIF of their own, for the README.
 private val GifItems = listOf(
-    "Circle", "Circle + ring", "Circle + sparks, lightning, dim",
+    "Circle", "Circle + ring", "Circle + ring, sparks, lightning, dim",
     "Flood", "Wipe 45° + ring", "Fade",
     "Dissolve", "Tear + ring, shake", "Rift",
 )
