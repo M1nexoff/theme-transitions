@@ -26,7 +26,6 @@ cases=("$@")
 [ ${#cases[@]} -gt 0 ] || cases=(circle circle-fx flood wipe wipe45 fade dissolve tear rift)
 
 package=io.github.m1nexoff.themetransitions.demo
-layer="$package/$package.MainActivity#0"
 # Git Bash on Windows would rewrite the device paths adb is given.
 export MSYS_NO_PATHCONV=1
 
@@ -36,6 +35,13 @@ trap 'rm -f "$presents"' EXIT
 keep=${KEEP_PRESENTS:-}
 
 device() { adb -s "$serial" "$@"; }
+
+# The surface the app draws into. Its name ends in #0 up to Android 13 or so and in the layer's id, new
+# on every launch, after that; the container layer above it carries a hash in front.
+find_layer() {
+  device shell dumpsys SurfaceFlinger --list | tr -d '\r' | sed -E 's/^RequestedLayerState\{//' |
+    grep -m1 -E "^$package/$package\.MainActivity#[0-9]+" | grep -oE "^[^ }]+"
+}
 
 # SurfaceFlinger keeps only the last 128 frames, about two seconds, so the bench polls well within that.
 collect() { device shell dumpsys SurfaceFlinger --latency "'$layer'" | tr -d '\r' >>"$presents"; }
@@ -84,6 +90,7 @@ for case in "${cases[@]}"; do
   device shell am force-stop "$package"
   device logcat -c
   device shell am start -W -n "$package/.MainActivity" --es bench "$case" >/dev/null
+  layer=$(find_layer)
   # The demo waits a second and a half before its first switch; start counting here.
   device shell dumpsys gfxinfo "$package" reset >/dev/null
   device shell dumpsys SurfaceFlinger --latency-clear "'$layer'" >/dev/null

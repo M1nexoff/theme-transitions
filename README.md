@@ -20,9 +20,10 @@ lightning, a shake, a dim or a glow on top.
   Combinations that cannot work do not compile.
 - **Any theme state.** A `Boolean`, an enum, a palette object: anything you can compare with `equals`.
 - **Android, iOS and desktop** from one `commonMain` dependency.
-- **Measured on a budget phone.** On a Redmi Note 9 every transition animates at 60 fps once it has
-  started; the switch itself costs a few frames, most of them your app's own recomposition (see
-  [Performance](#performance)).
+- **Measured on real phones.** Every transition keeps up with the display once it has started, at 60 fps
+  on a budget Redmi Note 9 and at 120 fps on a mid-range Redmi Note 13 Pro. The switch itself holds the
+  screen up for 12–52 ms on the Note 13 Pro and 67–130 ms on the Note 9, most of it your app's own
+  recomposition (see [Performance](#performance)).
 
 ## Install
 
@@ -176,39 +177,48 @@ The same goes for a different transition per theme: `transition = if (theme.isDa
 
 ## Performance
 
-Measured on a **Redmi Note 9** (MediaTek Helio G85, Mali-G52 MC2, Android 12, 1080 × 2340, 60 Hz), with
-the demo's release build and `scripts/bench.sh`, which counts the vsyncs SurfaceFlinger presented no
-new frame on. Ten switches per transition over the demo's Material 3 screen:
+Measured on two phones with the demo's release build and `scripts/bench.sh`, which reads from
+SurfaceFlinger when each frame actually reached the screen. Ten switches per transition, over the
+demo's Material 3 screen:
 
-| Transition | Smooth during the animation | Vsyncs missed at the switch, per switch |
-|---|---:|---:|
-| circle | 97.6% | 6.9 |
-| circle + ring, sparks, lightning, dim | 99.7% | 7.8 |
-| flood | 99.4% | 6.7 |
-| wipe | 99.0% | 4.0 |
-| wipe 45° | 99.7% | 7.1 |
-| fade | 99.1% | 6.3 |
-| dissolve | 99.7% | 6.3 |
-| tear | 99.7% | 6.0 |
-| rift | 99.7% | 7.5 |
-| *redraw: freeze and recompose, then repaint the screen with no transition drawn* | *100%* | *3.1* |
-| *redraw over a flat background* | *99.2%* | *0.1* |
+- **Redmi Note 9**: MediaTek Helio G85, Mali-G52 MC2, Android 12, 1080 × 2340, 60 Hz. A budget phone.
+- **Redmi Note 13 Pro**: MediaTek Helio G99-Ultra, Mali-G57 MC2, Android 16, 1080 × 2400, at 60 Hz and at
+  120 Hz. A mid-range one.
 
-**Once it starts, every transition runs at 60 fps**: what it misses during the animation is a single
-frame now and then, and a few in the first, still cold transition of a run. The switch itself costs
-more, in three parts:
+Each cell gives the share of the animation's vsyncs that had a new frame, then how long the switch
+itself held the screen up:
 
-- **Freezing the old theme** draws your whole screen once more into a bitmap: 15–30 ms on this phone,
+| Transition | Note 9, 60 Hz | Note 13 Pro, 60 Hz | Note 13 Pro, 120 Hz |
+|---|---:|---:|---:|
+| circle | 97.6% · 115 ms | 100% · 13 ms | 99.6% · 32 ms |
+| circle + ring, sparks, lightning, dim | 99.7% · 130 ms | 100% · 27 ms | 98.8% · 52 ms |
+| flood | 99.4% · 112 ms | 100% · 17 ms | 100% · 37 ms |
+| wipe | 99.0% · 67 ms | 100% · 12 ms | 99.8% · 25 ms |
+| wipe 45° | 99.7% · 118 ms | 100% · 17 ms | 99.8% · 23 ms |
+| fade | 99.1% · 105 ms | 100% · 18 ms | 100% · 26 ms |
+| dissolve | 99.7% · 105 ms | 100% · 13 ms | 100% · 31 ms |
+| tear | 99.7% · 100 ms | 100% · 15 ms | 99.9% · 33 ms |
+| rift | 99.7% · 125 ms | 100% · 32 ms | 99.4% · 50 ms |
+| *redraw: freeze and recompose, then repaint with no transition drawn* | *100% · 52 ms* | *100% · 18 ms* | *100% · 28 ms* |
+| *redraw over a flat background* | *99.2% · 2 ms* | *100% · 0 ms* | *100% · 3 ms* |
+
+**Once it starts, every transition keeps up with the display**: 60 fps on both phones, 120 fps on the
+Note 13 Pro. What it misses is a single frame now and then, a few in the first, still cold transition
+of a run, and at 120 Hz the tail of the switch, which runs past the four frames the bench counts as the
+switch. The switch itself is where the cost is, in three parts:
+
+- **Freezing the old theme** draws your whole screen once more into a bitmap: 15–30 ms on the Note 9,
   depending on the screen.
 - **Your app recomposing in the new theme.** `MaterialTheme` hands out its colours through a static
   composition local, so everything below it recomposes on the frame the theme changes, transition or
-  not: 60–120 ms for the demo's screen on this phone, while it is still being compiled, less after.
+  not: 60–120 ms for the demo's screen on the Note 9 while it is still being compiled, less after.
 - **The transition's first frames**, which put the frozen frame on the GPU and wake it from idle: the
-  difference between the `redraw` row and the others, one to four frames.
+  difference between the `redraw` row and the others.
 
-Over a flat background none of it shows, so it is the screen that sets the price. If a switch hitches
-on a slow phone, the recomposition is the one to cut: provide your colours through a
-`compositionLocalOf` (dynamic), so only what reads a colour recomposes, and ship a baseline profile.
+Over a flat background none of it shows, so it is the screen that sets the price: 12–52 ms of it on the
+mid-range phone, 67–130 ms on the budget one. If a switch hitches on a slow phone, the recomposition is the one to
+cut: provide your colours through a `compositionLocalOf` (dynamic), so only what reads a colour
+recomposes, and ship a baseline profile.
 
 ## How it works
 
@@ -240,7 +250,7 @@ transition ends, including after switches made mid-transition.
 
 | | |
 |---|---|
-| Android | minSdk 23. Checked on Android 6, 9, 12 and 16. |
+| Android | minSdk 23. Checked on Android 6, 9, 12 and 16, measured on two phones. |
 | iOS | `iosArm64`, `iosSimulatorArm64`. Not measured on a device. |
 | Desktop | JVM 11+ |
 | Kotlin | 2.2.20 or newer |
