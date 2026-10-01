@@ -1,5 +1,7 @@
 # Theme Transitions
 
+[![JitPack](https://jitpack.io/v/M1nexoff/theme-transitions.svg)](https://jitpack.io/#M1nexoff/theme-transitions)
+
 Theme switch animations for Compose Multiplatform. Wrap your theme in `AnimatedTheme`, pick a
 transition, and the screen changes theme through a circle that grows from the user's tap, a flood
 of colour, a wipe, a fade, a dissolve or a rift that tears the screen open. Layer rings, sparks,
